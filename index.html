@@ -1,104 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>我的 Python 爱心代码</title>
+    <style>
+        body {
+            font-family: "Microsoft Yahei", sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        h1 {
+            color: #ff69b4;
+            text-align: center;
+        }
+        pre {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            font-family: "Consolas", "Monaco", monospace;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <h1>我的 Python 爱心代码 💖</h1>
+    <pre>
 import tkinter as tk
 import time
 import random
-import threading
 import math
 
 # 配置参数
 POPUP_WIDTH = 150
 POPUP_HEIGHT = 60
-SPAWN_DELAY = 0.08      # 每个弹窗的间隔时间（秒）
-HEART_SCALE = 25        # 心形大小缩放
-HEART_OFFSET_Y = -100   # 心形在屏幕上的垂直偏移
+SPAWN_DELAY = 0.08  # 每个弹窗的间隔时间（秒）
+HEART_SCALE = 25    # 心形大小缩放
+HEART_OFFSET_Y = -100  # 心形在屏幕上的垂直偏移
 
 # 随机提示语和背景色
-tips = [
+提示 = [
     "记得吃水果", "保持微笑", "多喝水", "早点睡",
     "别熬夜", "多运动", "开心一点", "你超棒的",
     "爱自己", "今天也要加油", "想你了", "520"
 ]
 
 bg_colors = [
-    "#ffb6c1", "#ffc0cb", "#ff69b4", "#ff1493",
-    "#ff8c94", "#ff9eb6", "#ffb3d9", "#ffc6e5",
-    "#ffd9ec", "#ffe6f2", "#ff66b2", "#ff80cc"
+    "#ff69b4", "#ffc0cb", "#ff69b4", "#ff1493",
+    "#ff69b4", "#ff69b4", "#ffb6c1", "#ff69b4",
+    "#ffdab9", "#ff69b4", "#ff69b4", "#ffb6c1"
 ]
 
 def heart_x(t, size=HEART_SCALE):
+    # 返回大小 * (16 * (sin(t) ** 3))
     return size * (16 * (math.sin(t) ** 3))
 
 def heart_y(t, size=HEART_SCALE):
+    # 返回 -大小 * (13 * math.cos(t) - 5 * math.cos(2*t) - 2 * math.cos(3*t) - math.cos(4*t))
     return -size * (13 * math.cos(t) - 5 * math.cos(2*t) - 2 * math.cos(3*t) - math.cos(4*t))
 
 def generate_heart_points():
     """生成爱心形状的坐标点"""
     points = []
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    center_x = screen_width // 2
-    center_y = screen_height // 2 + HEART_OFFSET_Y
-
     t = 0
     while t < 2 * math.pi:
         x = heart_x(t)
         y = heart_y(t)
-        # 转换为屏幕坐标
-        screen_x = int(center_x + x)
-        screen_y = int(center_y + y)
-        # 确保窗口在屏幕内
-        screen_x = max(POPUP_WIDTH//2, min(screen_x, screen_width - POPUP_WIDTH//2))
-        screen_y = max(POPUP_HEIGHT//2, min(screen_y, screen_height - POPUP_HEIGHT//2))
-        points.append((screen_x, screen_y))
-        t += 0.1
+        points.append((x, y))
+        t += 0.01
     return points
 
-def create_popup(x, y, is_last=False):
-    """创建单个弹窗"""
-    window = tk.Toplevel(root)
-    window.title("")
-    window.geometry(f"{POPUP_WIDTH}x{POPUP_HEIGHT}+{x-POPUP_WIDTH//2}+{y-POPUP_HEIGHT//2}")
-    window.resizable(False, False)
+# 获取屏幕尺寸
+root = tk.Tk()
+root.withdraw()  # 隐藏主窗口
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+center_x = screen_width // 2
+center_y = screen_height // 2
 
-    # 设置随机背景色和提示语
-    bg_color = random.choice(bg_colors)
-    tip_text = random.choice(tips)
+# 生成爱心坐标
+heart_points = generate_heart_points()
 
-    window.configure(bg=bg_color)
-    label = tk.Label(
-        window,
-        text=tip_text,
-        bg=bg_color,
-        fg="white",
-        font=("微软雅黑", 11, "bold"),
-        wraplength=POPUP_WIDTH - 20,
-        justify="center"
-    )
-    label.pack(expand=True, fill="both")
+# 主循环：按爱心轨迹弹出窗口
+for (dx, dy) in heart_points:
+    # 随机选择提示语和背景色
+    text = random.choice(提示)
+    bg = random.choice(bg_colors)
+    
+    # 创建弹窗
+    popup = tk.Toplevel()
+    popup.title("")
+    popup.geometry(f"{POPUP_WIDTH}x{POPUP_HEIGHT}")
+    popup.config(bg=bg)
+    
+    # 窗口位置：屏幕中心 + 爱心偏移 + 轨迹偏移
+    x = center_x + int(dx) - POPUP_WIDTH // 2
+    y = center_y + HEART_OFFSET_Y + int(dy) - POPUP_HEIGHT // 2
+    popup.geometry(f"+{x}+{y}")
+    
+    # 添加文本标签
+    label = tk.Label(popup, text=text, bg=bg, fg="white", font=("Microsoft Yahei", 12, "bold"))
+    label.pack(expand=True)
+    
+    # 刷新并短暂停留
+    popup.update()
+    time.sleep(SPAWN_DELAY)
 
-    # 最后一个弹窗点击关闭所有窗口
-    if is_last:
-        def close_all():
-            root.destroy()
-        window.protocol("WM_DELETE_WINDOW", close_all)
-
-def popup_heart():
-    """逐个弹出爱心窗口"""
-    points = generate_heart_points()
-    total = len(points)
-    for i, (x, y) in enumerate(points):
-        if root.quit_requested:
-            break
-        is_last = (i == total - 1)
-        root.after(0, create_popup, x, y, is_last)
-        time.sleep(SPAWN_DELAY)
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.withdraw()  # 隐藏主窗口
-    root.quit_requested = False
-
-    # 在新线程中运行弹窗，避免阻塞主循环
-    threading.Thread(target=popup_heart, daemon=True).start()
-
-    # 主循环
-    root.mainloop()
+# 最后显示一个大的爱心窗口
+final_popup = tk.Toplevel()
+final_popup.title("")
+final_popup.geometry("300x200")
+final_popup.config(bg="#ff1493")
+final_label = tk.Label(final_popup, text="❤️ 爱你 ❤️", bg="#ff1493", fg="white", font=("Microsoft Yahei", 24, "bold"))
+final_label.pack(expand=True)
+final_popup.geometry(f"+{center_x - 150}+{center_y - 100}")
+final_popup.mainloop()
+    </pre>
+</body>
+</html>
